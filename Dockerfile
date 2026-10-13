@@ -5,8 +5,9 @@ FROM timbru31/node-alpine-git:22 AS base
 
 WORKDIR /app
 
-# Common dependencies
-RUN apk add --no-cache curl ca-certificates bash
+# Common dependencies, including the toolchain used to rebuild sqlite3.
+RUN apk add --no-cache curl ca-certificates bash python3 make g++
+ENV PYTHON=/usr/bin/python3
 
 FROM base AS deps
 
@@ -37,6 +38,9 @@ RUN npm run build
 FROM node:22-alpine AS prod
 
 WORKDIR /app
+
+RUN apk add --no-cache python3 make g++
+ENV PYTHON=/usr/bin/python3
 
 COPY --chown=node:node --from=build /app/dist ./dist
 COPY --chown=node:node --from=deps /app/node_modules ./node_modules
